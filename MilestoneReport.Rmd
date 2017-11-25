@@ -1,0 +1,195 @@
+---
+title: "Coursera Data Science Capstone - Milestone Report"
+author: "Julien Lafontaine"
+date: "6 août 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+This is the milestone report for the Capstone Project of the Johns Hopkins Data Science Specialisation on Coursera. 
+In this report we will summarise the exploratory data analysis done on the dataset.
+
+
+## Data Loading and Clean Up
+
+The first step is to load and do some basic clean up of the data such as removing uncessary white spaces, punctuation and numbers as well as converting the text to lower cases. 
+
+```{r cache=TRUE, warning=FALSE}
+con_twit <- file("final/en_US/en_US.twitter.txt", "r")
+lines_twit <- readLines(con_twit)
+
+con_news <- file("final/en_US/en_US.news.txt", "r")
+lines_news <- readLines(con_news)
+
+con_blogs <- file("final/en_US/en_US.blogs.txt", "r")
+lines_blogs <- readLines(con_blogs)
+
+library(tm)
+
+createCleanCorpus <- function(doc_lines) {
+  doc <- Corpus(VectorSource(doc_lines))
+  
+  doc <- tm_map(doc, content_transformer(tolower))
+  doc <- tm_map(doc, removeNumbers)
+  doc <- tm_map(doc, stripWhitespace)
+  doc <- tm_map(doc, removePunctuation)
+}
+
+doc_twit <- createCleanCorpus(lines_twit) 
+doc_news <- createCleanCorpus(lines_news) 
+doc_blogs <- createCleanCorpus(lines_blogs) 
+
+```
+
+
+## Exploratory Data Analysis
+
+We now do some exploratory data analysis focusing on looking at the number of occurences of different terms in the copora. 
+
+Below are some utility functions that we will use to explore that dataset.
+
+```{r message=FALSE}
+
+library(tm)
+library(ggplot2)
+
+getLineCount <- function(doc_lines) {
+  length(doc_lines)
+}
+
+getTermCounts <- function(dtm) {
+  slam::col_sums(dtm)
+}
+
+quantileTable <- function(data) {
+  q <- quantile(data , c(0,0.5,0.6,0.7,0.8,0.9,0.95,0.97,0.98,0.99,1))  
+  df <- data.frame(names(q), unname(q))
+  names(df) <- c("Percentile", "Num. Occurence")
+  knitr::kable(df, format = "markdown", digits = 0)
+}
+```
+
+
+### Twitter File
+
+Let's look at the number of lines and words in the file containing the Twitter posts. 
+
+```{r}
+# Numer of lines
+getLineCount(lines_twit)
+
+dtm_twit <- DocumentTermMatrix(doc_twit)
+term_counts_twit <- getTermCounts(dtm_twit)
+
+# Number of words
+sum(term_counts_twit)
+```
+
+We now take a close look at the frequency of occurrence of each term in the file.
+
+```{r echo=FALSE, results='asis'}
+quantileTable(term_counts_twit)
+```
+
+```{r echo=FALSE, message=FALSE}
+qplot(term_counts_twit, log = "x", xlab = "Log(Num. Occurence)", ylab = "Frequency")
+```
+
+We can see that most terms only occur once. They are usually the result of typos / spelling error and the incorrect removal of punctunation. 
+
+```{r}
+head(term_counts_twit[term_counts_twit==1])
+```
+
+Conversly there are a small number of terms that appear very frequently.
+
+```{r}
+head(term_counts_twit[term_counts_twit>150000])
+```
+
+
+## News File
+
+Let's now do the same analysis for the News file
+
+
+```{r}
+# Numer of lines
+getLineCount(lines_news)
+
+dtm_news <- DocumentTermMatrix(doc_news)
+term_counts_news <- getTermCounts(dtm_news)
+
+# Number of words
+sum(term_counts_news)
+```
+
+```{r echo=FALSE, results='asis'}
+quantileTable(term_counts_news)
+```
+
+```{r echo=FALSE, message=FALSE}
+qplot(term_counts_news, log = "x", xlab = "Log(Num. Occurence)", ylab = "Frequency")
+```
+
+Just like for the twitter file. Most terms occur only once and a few a very large number of times. The reason appears to be the same.
+
+```{r}
+head(term_counts_news[term_counts_news==1])
+```
+
+
+```{r}
+head(term_counts_news[term_counts_news>1000000])
+```
+
+
+
+
+
+## Blogs File
+
+Finally, let's look a the Blogs file
+
+```{r}
+# Numer of lines
+getLineCount(lines_blogs)
+
+dtm_blogs <- DocumentTermMatrix(doc_blogs)
+term_counts_blogs <- getTermCounts(dtm_blogs)
+
+# Number of words
+sum(term_counts_blogs)
+```
+
+```{r echo=FALSE, results='asis'}
+quantileTable(term_counts_blogs)
+```
+
+```{r echo=FALSE, message=FALSE}
+qplot(term_counts_blogs, log = "x", xlab = "Log(Num. Occurence)", ylab = "Frequency")
+```
+
+The resuts are consistent with the Twitter and News files.
+
+```{r}
+head(term_counts_blogs[term_counts_blogs==1])
+```
+
+```{r}
+head(term_counts_blogs[term_counts_blogs>1000000])
+```
+
+
+## Conclusion and next steps
+
+The exploratory data analysis performed so far indicates that many terms occur only once as a result of typos but also the incorrect removal of character such as "-". These terms  should probably be excluded from our model.
+
+We have also seen that there is a comparativly very small number of terms that occur extremly frequently.
+
+The next step is to start looking into building a prediction model based on n-grams. It feels that looking at the last 2 or 3 words typed should give us a good idea about what words are likley to be coming up next. However, prior to that some further clean up of the data is required.

@@ -25,12 +25,7 @@ create_data_file <- function(input_folder, output_folder, sample = FALSE) {
 }
 
 cleanPunctation <- function(x) {
-  x1 <- gsub('“|”', '"', x)
-  x1 <- gsub("’|‘", "'", x1)
-  x1 <- gsub("…|'", " ", x1)
-  x1 <- gsub("¿|¡", " ", x1)
-  x1 <- gsub("—|–|―", " ", x1)
-  x1 <- gsub("♥|⁰|•", " ", x1)
+  x1 <- gsub("[^A-Za-z]", " ", x)
   x1
 }
 
@@ -52,14 +47,15 @@ full_file_folder <- paste(work_data_folder, "full", sep = "/")
 #create_data_file(raw_data_folder, full_file_folder, FALSE)
 c <- create_corpus(full_file_folder)
 
-# tdm1 <- TermDocumentMatrix(c)
+# m <-
 # 
 # m1 <- as.matrix(tdm1)
 
 test_cleanPunctation <- function() {
-  print(cleanPunctation('ask”') == 'ask"')
-  print(cleanPunctation("¿what if i was shallow?") == " what if i was shallow?")
+  print(cleanPunctation('ask”') == 'ask ')
+  print(cleanPunctation("¿what if i was shallow?") == " what if i was shallow ")
   print(cleanPunctation("— but not impossible —") == "  but not impossible  ")
   print(cleanPunctation("I'd like") == "I d like")
   print(cleanPunctation("— but not impossible —") == "  but not impossible  ")
+  print(cleanPunctation("☀😁💛school")  == "   school")
 }

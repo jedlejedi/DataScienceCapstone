@@ -1,9 +1,45 @@
-
 library(tm)
 library(dplyr)
 
+optimse_dataframe <- function(df) {
+  filter(df, Occurence > 1)
+  # df
+}
+
+df3 <- optimse_dataframe(df_train)
+
 
 df2 <- group_by(df3, Term1, Term2) %>% summarise(Occurence = sum(Occurence)) %>% ungroup()
+
+get_possible_next_words <- function(term1, term2) {
+  res <- filter(df3, 
+                Term1 == term1, 
+                Term2 == term2) %>% 
+    arrange(desc(Occurence))%>%
+    select(Term = Term3, Occurence)
+  
+  if(nrow(res) == 0) {
+    res <- filter(df2, 
+                  Term1 == term2) %>%
+      arrange(desc(Occurence)) %>% 
+      select(Term = Term2, Occurence)
+  }
+  
+  res
+}
+
+predict_next_word <- function(term1, term2) {
+  
+  ret <- get_possible_next_words(term1, term2)
+  
+  if(nrow(ret) > 0) {
+    return(ret[1,]$Term)
+  }  
+  else {
+    return("a")
+  }
+  
+}
 
 quiz <- function(term1, term2, w1, w2, w3, w4) {
   res <- filter(df3, 
@@ -35,7 +71,7 @@ quiz("quite","some", "thing", "time", "weeks", "years")
 quiz("his","little", "eyes", "toes", "fingers", "ears")
 quiz("during","the", "hard", "sad", "worse", "bad")
 quiz("must","be", "asleep", "callous", "insensitive", "insane")
-# 
+
 # quiz("i", "d", "die", "eat", "give", "sleep")
 # quiz("about", "his", "financial", "spiritual", "marital", "horticultural")
 # quiz("monkeys","this", "weekend", "decade", "morning", "month")

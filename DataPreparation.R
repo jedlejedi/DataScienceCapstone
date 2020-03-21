@@ -7,6 +7,8 @@ library(dplyr)
 library(qdapDictionaries)
 
 training_set_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work/training"
+test_set_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work/testing"
+
 
 cleanPunctation <- function(x) {
   x1 <- gsub("[^A-Za-z]", " ", x)
@@ -50,9 +52,8 @@ create_trigram_dataframe <- function(c) {
   df_clean
 }
 
-c <- create_corpus(training_set_data_folder)
-
-df3 <- create_trigram_dataframe(c)
+df_train <- create_trigram_dataframe(create_corpus(training_set_data_folder))
+#df_test <- create_trigram_dataframe(create_corpus(test_set_data_folder))
 
 test_cleanPunctation <- function() {
   print(cleanPunctation('ask”') == 'ask ')

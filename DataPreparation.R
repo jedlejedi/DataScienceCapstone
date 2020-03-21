@@ -22,11 +22,11 @@ create_corpus <- function(source_folder) {
   c1 
 }
 
-create_trigram_dataframe <- function(c) {
+create_ngram_dataframe <- function(c, n) {
   
-  TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
+  Tokenizer <- function(x) NGramTokenizer(x, Weka_control(min = n, max = n))
   
-  tdm <- TermDocumentMatrix(c, control = list(tokenize = TrigramTokenizer))
+  tdm <- TermDocumentMatrix(c, control = list(tokenize = Tokenizer))
   
   m <- as.matrix(tdm)
   rm(tdm)
@@ -38,21 +38,23 @@ create_trigram_dataframe <- function(c) {
   df <- data.frame(Terms, Occurence)
   rm(Terms, Occurence)
   
-  df3 <- separate(df, Terms, c("Term1","Term2","Term3"), " ")
-  rm(df)
+  field_names <- paste0("Term", 1:n)
   
+  df <- separate(df, Terms, field_names, " ")
+
   data(GradyAugmented)
   
   # Remove trigrams that contains non-english words
-  df_clean <- filter(df3, 
+  df_clean <- filter(df, 
          Term1 %in% GradyAugmented, 
          Term2 %in% GradyAugmented, 
-         Term3 %in% GradyAugmented)
+         Term3 %in% GradyAugmented, 
+         Term4 %in% GradyAugmented)
   
   df_clean
 }
 
-df_train <- create_trigram_dataframe(create_corpus(training_set_data_folder))
+df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 4)
 #df_test <- create_trigram_dataframe(create_corpus(test_set_data_folder))
 
 test_cleanPunctation <- function() {

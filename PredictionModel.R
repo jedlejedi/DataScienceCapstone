@@ -1,25 +1,7 @@
-options(java.parameters = "-Xmx2048m")
 
 library(tm)
-library(RWeka)
-library(tidyr)
 library(dplyr)
 
-TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
-
-tdm <- TermDocumentMatrix(c, control = list(tokenize = TrigramTokenizer))
-
-m <- as.matrix(tdm)
-rm(tdm)
-
-Terms <- rownames(m)
-Occurence <- unname(m)
-rm(m)
-
-df <- data.frame(Terms, Occurence)
-rm(Terms, Occurence)
-
-df3 <- separate(df, Terms, c("Term1","Term2","Term3"), " ")
 
 df2 <- group_by(df3, Term1, Term2) %>% summarise(Occurence = sum(Occurence)) %>% ungroup()
 

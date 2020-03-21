@@ -1,55 +1,58 @@
+options(java.parameters = "-Xmx2048m")
+
 library(tm)
+library(RWeka)
+library(tidyr)
+library(dplyr)
+library(qdapDictionaries)
 
-raw_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/raw/en_US"
-work_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work"
-
-create_data_file <- function(input_folder, output_folder, sample = FALSE) {
-  
-  files <- list.files(raw_data_folder)
-  
-  fc_output <- file(paste(output_folder, "en_US.txt", sep = "/"))
-  
-  for (f in files) {
-    fc <- file(paste(raw_data_folder, f, sep = "/"))
-    lines <- readLines(fc);
-    close(fc)
-    num_line <- length(lines)
-    print(c(f, num_line))
-    if(sample) {
-      lines <- sample(lines, num_line * 0.1)
-    }
-    writeLines(lines, fc_output)
-  }
-  close(fc_output)  
-  
-}
+training_set_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work/training"
 
 cleanPunctation <- function(x) {
   x1 <- gsub("[^A-Za-z]", " ", x)
   x1
 }
 
-create_corpus <- function(source_folder)  {
+create_corpus <- function(source_folder) {
   c <- VCorpus(DirSource(source_folder))
-  c1 <- tm_map(c, removeNumbers)
-  c1 <- tm_map(c1, content_transformer(cleanPunctation))
-  c1 <- tm_map(c1, removePunctuation, ucp = FALSE)
+  c1 <- tm_map(c, content_transformer(cleanPunctation))
   c1 <- tm_map(c1, stripWhitespace)
-  c1
+  c1 
 }
 
-sample_file_folder <- paste(work_data_folder, "sample", sep = "/")
-full_file_folder <- paste(work_data_folder, "full", sep = "/")
+create_trigram_dataframe <- function(c) {
+  
+  TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
+  
+  tdm <- TermDocumentMatrix(c, control = list(tokenize = TrigramTokenizer))
+  
+  m <- as.matrix(tdm)
+  rm(tdm)
+  
+  Terms <- rownames(m)
+  Occurence <- unname(m)
+  rm(m)
+  
+  df <- data.frame(Terms, Occurence)
+  rm(Terms, Occurence)
+  
+  df3 <- separate(df, Terms, c("Term1","Term2","Term3"), " ")
+  rm(df)
+  
+  data(GradyAugmented)
+  
+  # Remove trigrams that contains non-english words
+  df_clean <- filter(df3, 
+         Term1 %in% GradyAugmented, 
+         Term2 %in% GradyAugmented, 
+         Term3 %in% GradyAugmented)
+  
+  df_clean
+}
 
-# create_data_file(raw_data_folder, sample_file_folder, TRUE)
-# c <- create_corpus(sample_file_folder)
+c <- create_corpus(training_set_data_folder)
 
-#create_data_file(raw_data_folder, full_file_folder, FALSE)
-c <- create_corpus(full_file_folder)
-
-# m <-
-# 
-# m1 <- as.matrix(tdm1)
+df3 <- create_trigram_dataframe(c)
 
 test_cleanPunctation <- function() {
   print(cleanPunctation('ask”') == 'ask ')

@@ -24,7 +24,6 @@ create_corpus <- function(source_folder) {
 }
 
 create_ngram_dataframe <- function(c, n) {
-  
   Tokenizer <- function(x) NGramTokenizer(x, Weka_control(min = n, max = n))
   
   tdm <- TermDocumentMatrix(c, control = list(tokenize = Tokenizer))
@@ -50,9 +49,12 @@ remove_non_english_words <- function(df) {
   filter_at(df, vars(starts_with("Term")), all_vars((. %in% GradyAugmented)))
 }
 
+start_time <- Sys.time()
+df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 4)
+end_time <- Sys.time()
+print(end_time - start_time)
 
-df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 3)
-#df_test <- create_trigram_dataframe(create_corpus(test_set_data_folder))
+df_test <- create_ngram_dataframe(create_corpus(test_set_data_folder), 4)
 
 test_cleanPunctation <- function() {
   print(cleanPunctation('ask”') == 'ask ')
@@ -84,5 +86,5 @@ test_remove_non_english_words <- function() {
   
   result <- remove_non_english_words(tdf)
   
-  all.equal(result, expected_result)
+  print(all.equal(result, expected_result))
 }

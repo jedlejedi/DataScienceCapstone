@@ -1,129 +1,131 @@
 library(dplyr)
 
-df3 <- group_by(df_train, Term1, Term2, Term3, .drop = TRUE) %>%
-  summarise(Occurence = sum(Occurence)) %>%
-  ungroup()
-
-# df4 <- left_join(df_train, df3, by = c("Term1" = "Term1", "Term2" = "Term2", "Term3" = "Term3")) %>%
-#   filter(Occurence == MaxOccurence)
+df4 <- group_by(df_train, Term1, Term2, Term3, .drop = TRUE)
+df4 <- arrange(df4, Term1, Term2, Term3, Occurence)
+df4 <- summarise(df4, TotalOccurence = sum(Occurence), Term4 = last(Term4), Occurence = last(Occurence))
+df4 <- ungroup(df4)
 
 
-df2 <- group_by(df3, Term1, Term2, .drop = TRUE) %>%
-  summarise(Occurence = sum(Occurence)) %>%
-  ungroup()
+df3 <- select(df4, Term1, Term2, Term3, Occurence = TotalOccurence)
 
-df1 <- group_by(df2, Term1, .drop = TRUE) %>%
-  summarise(Occurence = sum(Occurence)) %>%
-  ungroup()
+df3 <- group_by(df3, Term1, Term2, .drop = TRUE)
+df3 <- arrange(df3, Term1, Term2, Occurence)
+df3 <- summarise(df3, TotalOccurence = sum(Occurence), Term3 = last(Term3), Occurence = last(Occurence))
+df3 <- ungroup(df3)
 
 
-get_possible_next_words <- function(term1, term2, term3) {
+df2 <- select(df3, Term1, Term2, Occurence = TotalOccurence)
+
+df2 <- group_by(df2, Term1, .drop = TRUE)
+df2 <- arrange(df2, Term1, Occurence)
+df2 <- summarise(df2, TotalOccurence = sum(Occurence), Term2 = last(Term2), Occurence = last(Occurence))
+df2 <- ungroup(df2)
+
+
+df1 <- select(df2, Term1, Occurence = TotalOccurence) %>% 
+  arrange(Occurence) %>%
+  summarise(Term1 = last(Term1), Occurence = last(Occurence))
+
+get_possible_next_words3 <- function(term1, term2, term3) {
   
-  res <- filter(df_train,
+  res <- filter(df4,
                 Term1 == term1,
                 Term2 == term2,
                 Term3 == term3) %>%
     select(Term = Term4, Occurence, Term1, Term2, Term3)
-
+  
   if(nrow(res) > 0) {
     return(res)
   }
+  
+  return(get_possible_next_words2(term2, term3))
+  
+}
 
+
+get_possible_next_words2 <- function(term1, term2) {
+  
   res <- filter(df3,
-                Term1 == term2,
-                Term2 == term3) %>%
+                Term1 == term1,
+                Term2 == term2) %>%
     select(Term = Term3, Occurence, Term1, Term2)
-
+  
   if(nrow(res) > 0) {
     return(res)
   }
-
+  
   res <- filter(df2,
-                Term1 == term3) %>%
+                Term1 == term2) %>%
     select(Term = Term2, Occurence, Term1)
-
+  
   if(nrow(res) > 0) {
     return(res)
   }
-
+  
   res <- select(df1, Term = Term1, Occurence)
-
+  
   return(res)
 }
 
-# predict_next_word <- function(term1, term2) {
-# 
-#   ret <- get_possible_next_words(term1, term2)
-# 
-#   ret[1,]$Term
-# }
+predict_next_word3 <- function(term1, term2, term3) {
+  
+  ret <- get_possible_next_words3(term1, term2, term3)
+  
+  ret[1,]$Term
+}
 
-quiz <- function(term1, term2, term3, w1, w2, w3, w4) {
+predict_next_word2 <- function(term1, term2) {
   
-  res <- filter(df_train, 
-                Term1 == term1, 
-                Term2 == term2, 
-                Term3 == term3, 
-                Term4 == w1 | 
-                  Term3 == w2 | 
-                  Term3 == w3 | 
-                  Term3 == w4) %>% arrange(desc(Occurence))
+  ret <- get_possible_next_words2(term1, term2)
   
-  if(nrow(res) > 0) {
-    return(res)
-  }
+  ret[1,]$Term
+}
 
-  res <- filter(df3, 
-                Term1 == term2, 
-                Term2 == term3, 
-                Term3 == w1 | 
-                  Term3 == w2 | 
-                  Term3 == w3 | 
-                  Term3 == w4) %>% arrange(desc(Occurence))
-  
-  if(nrow(res) > 0) {
-    return(res)
-  }
-  
-  res <- filter(df2, 
-                Term1 == term3, 
-                Term2 == w1 | 
-                  Term2 == w2 | 
-                  Term2 == w3 | 
-                  Term2 == w4) %>% arrange(desc(Occurence))
-
-  
-  if(nrow(res) > 0) {
-    return(res)
-  }
-  
-  filter(df1, 
-         Term1 == w1 | 
-           Term1 == w2 | 
-           Term1 == w3 | 
-           Term1 == w4) %>% arrange(desc(Occurence))
-  
+take_quiz3 <- function() {
+  print(quiz("and", "i", "d", "die", "eat", "give", "sleep"))
+  print(quiz("me", "about", "his", "financial", "spiritual", "marital", "horticultural"))
+  print(quiz("arctic", "monkeys","this", "weekend", "decade", "morning", "month"))
+  print(quiz("helps", "reduce","your", "stress", "sleepiness", "happyness", "hunger"))
+  print(quiz("to", "take","a", "walk", "picture", "minute", "look"))
+  print(quiz("to", "settle","the", "case", "matter", "account", "incident"))
+  print(quiz("groceries", "in","each", "toe", "arm", "hand", "finger"))
+  print(quiz("bottom","to","the", "side", "middle", "centre", "top"))
+  print(quiz("bruises", "from","playing", "outside", "daily", "inside", "weekly"))
+  print(quiz("adam", "sandlers","s", "pictures", "novels", "stories", "movie"))
 }
 
 
-# quiz("case", "of", "cheese", "beer", "sode", "pretzels")
-# quiz("mean", "the", "best", "most", "universe", "world")
-# quiz("me","the", "saddest", "smelliest", "bluest", "happiest")
-# quiz("but","the", "defense", "referees", "players", "crowd")
-# quiz("at","the", "mall", "beach", "grocery", "movies")
-# quiz("on","my", "phone", "horse", "way", "motorcycle")
-# quiz("quite","some", "thing", "time", "weeks", "years")
-# quiz("his","little", "eyes", "toes", "fingers", "ears")
-# quiz("during","the", "hard", "sad", "worse", "bad")
-# quiz("must","be", "asleep", "callous", "insensitive", "insane")
+test_optimise <- function() {
+  field_names <- c("Term1", "Term2","Term3","Term4", "Occurence")
+  
+  term1 <- c("the", "the", "the", "the")
+  term2 <- c("dog", "dog", "cat", "dog")
+  term3 <- c("is", "is", "is", "is")
+  term4 <- c("sleeping", "barking", "eating", "eating")
+  occurence <- c(2, 461, 23, 51)
+  
+  
+  tdf <- data.frame(term1, term2, term3, term4, occurence, stringsAsFactors = FALSE)
+  
+  names(tdf) <- field_names
+  
+  expected_rows <- c(3,2)
+  expected_result <- tdf[expected_rows,]
+  row.names(expected_result) <- 1:nrow(expected_result)
+  
+  TotalOccurence <- c(23, 514)
+  
+  expected_result <- bind_cols(expected_result, data.frame(TotalOccurence))
+  
+  result <- group_by(tdf, Term1, Term2, Term3, .drop = TRUE) %>% 
+    arrange(Term1, Term2, Term3, Occurence) %>%
+    summarise(TotalOccurence = sum(Occurence), Term4 = last(Term4), Occurence = last(Occurence)) %>%
+    ungroup()
+  
+  
+  head(result)
+  
+  print(all.equal(result, expected_result))
+  
+}
 
-quiz("and", "i", "d", "die", "eat", "give", "sleep")
-quiz("me", "about", "his", "financial", "spiritual", "marital", "horticultural")
-quiz("arctic", "monkeys","this", "weekend", "decade", "morning", "month")
-quiz("helps", "reduce","your", "stress", "sleepiness", "happyness", "hunger")
-quiz("to", "take","a", "walk", "picture", "minute", "look")
-quiz("to", "settle","the", "case", "matter", "account", "incident")
-quiz("groceries", "in","each", "toe", "arm", "hand", "finger")
-quiz("bottom","to","the", "side", "middle", "centre", "top")
-quiz("bruises", "from","playing", "outside", "daily", "inside", "weekly")
-quiz("adam", "sandlers","s", "pictures", "novels", "stories", "movie")

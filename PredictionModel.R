@@ -9,7 +9,7 @@ df2_m1 <- group_by(df3_m1, Term1, Term2, .drop = TRUE) %>%
   summarise(Occurence = sum(Occurence)) %>% 
   ungroup()
 
-get_possible_next_word <- function(term1, term2) {
+get_possible_next_words <- function(term1, term2) {
   res <- filter(df3_m1, 
                 Term1 == term1, 
                 Term2 == term2) %>% 
@@ -22,11 +22,10 @@ get_possible_next_word <- function(term1, term2) {
       arrange(desc(Occurence)) %>% 
       select(Term = Term2, Occurence)
   }
-  
   res
 }
 
-predict_next_word2 <- function(term1, term2) {
+predict_next_word <- function(term1, term2) {
   
   ret <- get_possible_next_words(term1, term2)
   
@@ -36,7 +35,6 @@ predict_next_word2 <- function(term1, term2) {
   else {
     return("i")
   }
-  
 }
 
 quiz2 <- function(term1, term2, w1, w2, w3, w4) {

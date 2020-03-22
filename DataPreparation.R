@@ -6,9 +6,10 @@ library(tidyr)
 library(dplyr)
 library(qdapDictionaries)
 
+data(GradyAugmented)
+
 training_set_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work/training"
 test_set_data_folder <- "/home/julien/data-science/DataScienceCapstone/data/work/testing"
-
 
 cleanPunctation <- function(x) {
   x1 <- gsub("[^A-Za-z]", " ", x)
@@ -42,19 +43,15 @@ create_ngram_dataframe <- function(c, n) {
   
   df <- separate(df, Terms, field_names, " ")
 
-  data(GradyAugmented)
-  
-  # Remove trigrams that contains non-english words
-  df_clean <- filter(df, 
-         Term1 %in% GradyAugmented, 
-         Term2 %in% GradyAugmented, 
-         Term3 %in% GradyAugmented, 
-         Term4 %in% GradyAugmented)
-  
-  df_clean
+  remove_non_english_words(df)
 }
 
-df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 4)
+remove_non_english_words <- function(df) {
+  filter_at(df, vars(starts_with("Term")), all_vars((. %in% GradyAugmented)))
+}
+
+
+df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 3)
 #df_test <- create_trigram_dataframe(create_corpus(test_set_data_folder))
 
 test_cleanPunctation <- function() {
@@ -64,4 +61,28 @@ test_cleanPunctation <- function() {
   print(cleanPunctation("I'd like") == "I d like")
   print(cleanPunctation("— but not impossible —") == "  but not impossible  ")
   print(cleanPunctation("☀😁💛school")  == "   school")
+}
+
+
+test_remove_non_english_words <- function() {
+  
+  field_names <- c("Term1", "Term2","Term3","ATerm4", "Occurence")
+  
+  term1 <- c("the", "the", "the", "the")
+  term2 <- c("dog", "dogaaa", "cat", "dog")
+  term3 <- c("is", "is", "is", "is")
+  term4 <- c("barking", "barking", "barking", "barkingasa")
+  occurence <- c(12, 1, 456, 3)
+  
+  tdf <- data.frame(term1, term2, term3, term4, occurence, stringsAsFactors = FALSE)
+  
+  names(tdf) <- field_names
+  
+  expected_rows <- c(1,3,4)
+  expected_result <- tdf[expected_rows,]
+  row.names(expected_result) <- 1:nrow(expected_result)
+  
+  result <- remove_non_english_words(tdf)
+  
+  all.equal(result, expected_result)
 }

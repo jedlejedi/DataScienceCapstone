@@ -1,15 +1,10 @@
 library(tm)
 library(dplyr)
 
-optimse_dataframe <- function(df) {
-  filter(df, Occurence > 1)
-  # df
-}
-
-df3 <- optimse_dataframe(df_train)
+df3 <- df_train
 
 
-df2 <- group_by(df3, Term1, Term2) %>% summarise(Occurence = sum(Occurence)) %>% ungroup()
+df2 <- group_by(df3, Term1, Term2, .drop = TRUE) %>% summarise(Occurence = sum(Occurence)) %>% ungroup()
 
 get_possible_next_words <- function(term1, term2) {
   res <- filter(df3, 

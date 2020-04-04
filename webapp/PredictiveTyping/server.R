@@ -8,17 +8,27 @@
 #
 
 library(shiny)
+library(tictoc)
 
-source("PredictionModel.R")
+source("PredictionModel3GS.R")
 
-start_time <- Sys.time()
-p <- get_predictor()
-end_time <- Sys.time()
-print(end_time - start_time)
+tic("Initialisation")
+p <- get_predictor3gs()
+toc()
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
-  output$predictedTerm <- renderText(paste(tolower(input$text), p(tolower(input$text))))
-
+  output$response <- renderText({
+    
+    input_text <- trimws(tolower(input$text))
+    
+    if(input_text == "") {
+      output_text <- ""
+    }
+    else {
+      output_text <- paste0("Is the next word \"",p(input_text),"\" ?")  
+    }    
+  })
+  
 })

@@ -12,17 +12,17 @@ library(shiny)
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
     
-    titlePanel("Hello Shiny!"),
+    includeCSS("styles.css"),
+    
+    titlePanel("Predictive Typing Model Demo"),
     
     fluidRow(
-        column(12,
-               textInput("text", "Enter text here"), submitButton("Guess next term")
-        ),
+        column(12, textInput("text","Type something in the text box below and click on the button", width = 450))
     ),
     fluidRow(
-        column(12,
-               textOutput("predictedTerm")
-        )
+        column(12, submitButton("Guess the next word!"))
+    ),
+    fluidRow(
+        column(12, textOutput("response"))
     )
-    
 ))

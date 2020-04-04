@@ -4,6 +4,7 @@ library(tm)
 library(RWeka)
 library(tidyr)
 library(dplyr)
+library(tictoc)
 
 source("Utils.R")
 
@@ -39,7 +40,7 @@ create_ngram_dataframe <- function(c, n) {
   remove_non_english_words(df)
 }
 
-create_model1_files <- function() {
+create_model_files <- function() {
   df_model_3g <- group_by(df_train, Term1, Term2, Term3, .drop = TRUE) %>% 
     summarise(Occurence = sum(Occurence)) %>% 
     ungroup()
@@ -47,18 +48,41 @@ create_model1_files <- function() {
   save(df_model_3g, file = "model_data.RData")
 }
 
-start_time <- Sys.time()
+
+create_model2_files <- function() {
+  
+  tic("create 4 term dataframe")
+  df_model4gs <- group_by(df_train, Term1, Term2, Term3, .drop = TRUE)
+  df_model4gs <- arrange(df_model4gs, Term1, Term2, Term3, Occurence)
+  df_model4gs <- summarise(df_model4gs, TotalOccurence = sum(Occurence), Term4 = last(Term4), Occurence = last(Occurence))
+  df_model4gs <- ungroup(df_model4gs)
+  
+  save(df_model4gs, file = "model4gs_data.RData")
+  toc()
+  
+  tic("create 3 term dataframe")
+  df_model3gs <- select(df_model4gs, Term1, Term2, Term3, Occurence = TotalOccurence)
+  
+  df_model3gs <- group_by(df_model3gs, Term1, Term2, .drop = TRUE)
+  df_model3gs <- arrange(df_model3gs, Term1, Term2, Occurence)
+  df_model3gs <- summarise(df_model3gs, TotalOccurence = sum(Occurence), Term3 = last(Term3), Occurence = last(Occurence))
+  df_model3gs <- ungroup(df_model3gs)
+  
+  save(df_model3gs, file = "model3gs_data.RData")
+  toc()
+}
+
+tic("create training set")
 df_train <- create_ngram_dataframe(create_corpus(training_set_data_folder), 4)
-end_time <- Sys.time()
-print(end_time - start_time)
+toc()
 
-start_time <- Sys.time()
+tic("create training step")
 df_test <- create_ngram_dataframe(create_corpus(test_set_data_folder), 4)
-end_time <- Sys.time()
-print(end_time - start_time)
+toc()
 
 
-create_model1_files()
+create_model_files()
+create_model2_files()
 
 
 

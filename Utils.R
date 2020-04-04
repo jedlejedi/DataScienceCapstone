@@ -54,8 +54,25 @@ test_get_clean_terms <-  function() {
   print(5 == sum(get_clean_terms("¿what if i was shallow?") == c("what", "if", "i", "was", "shallow")))
 }
 
+get_last_terms <- function(terms, n) {
+  
+  r <- tail(terms, n)
+  
+  if(length(r) < n) {
+    r <- append(rep("", n - length(r)),r)
+  }
+  r
+}
+
+test_get_last_terms <- function() {
+  print(3 == sum(get_last_terms(c("1","2","3"),3) == c("1","2","3")))
+  print(3 == sum(get_last_terms(c("1","2","3","4"),3) == c("2","3","4")))
+  print(3 == sum(get_last_terms(c("1","2"),3) == c("","1","2")))
+}
+
 test_utils <- function() {
   test_remove_invalid_terms()
   test_remove_non_english_words()
   test_get_clean_terms()
+  test_get_last_terms()
 }

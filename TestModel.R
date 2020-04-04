@@ -1,26 +1,24 @@
+library(tictoc)
 
 index <- sample(1:nrow(df_test), 1000)
 t <- df_test[index,]
 
-start_time <- Sys.time()
-result <- t %>% rowwise() %>% mutate(Prediction = predict_next_word3(Term1, Term2, Term3))
-end_time <- Sys.time()
+assess_model <- function(factory) {
+  tic("initialisation")
+  p <- factory()
+  toc()
+  tic("prediction")
+  result <- t %>% rowwise() %>% mutate(Prediction = p(paste(Term1, Term2, Term3)))
+  toc()
+  print(sum(result$Term4 == result$Prediction) / nrow(result))
+}
 
-print(sum(result$Term4 == result$Prediction) / nrow(result))
-print(end_time - start_time)
+print("3 gram model (multiple match)")
+assess_model(get_predictor3gm)
 
+print("4 gram model (single match)")
+assess_model(get_predictor4gs)
 
-start_time <- Sys.time()
-result <- t %>% rowwise() %>% mutate(Prediction = predict_next_word2(Term1, Term2))
-end_time <- Sys.time()
-
-print(sum(result$Term3 == result$Prediction) / nrow(result))
-print(end_time - start_time)
-
-start_time <- Sys.time()
-result <- t %>% rowwise() %>% mutate(Prediction = predict_next_word(Term1, Term2))
-end_time <- Sys.time()
-
-print(sum(result$Term3 == result$Prediction) / nrow(result))
-print(end_time - start_time)
+print("3 gram model (single match)")
+assess_model(get_predictor3gs)
 

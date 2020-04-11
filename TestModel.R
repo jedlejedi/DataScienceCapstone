@@ -1,5 +1,9 @@
 library(tictoc)
 
+source("PredictionModel3GS.R")
+source("PredictionModel4GS.R")
+source("PredictionModel3GM.R")
+
 index <- sample(1:nrow(df_test), 1000)
 t <- df_test[index,]
 

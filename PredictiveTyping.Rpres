@@ -1,0 +1,39 @@
+Predictive Typing: Model Overview
+========================================================
+author: Julien Lafontaine
+date:  11 April 2020
+autosize: true
+transition: fade
+
+
+Value Proposition 
+========================================================
+- Our model can predict within a few milliseconds the next word in a sentence with a 15% accuracy.
+- The model is lightweight (only a few MBs) and can easily be implemented on most devices.
+- We created and tested various models and picked up the one that provided the best trade off between performance and accuracy.
+
+How does the model work?
+========================================================
+### Data Preparation
+A training and test sets were created from  [this](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) corpus. The training set was "tokenized" to create one list of tri-grams and one of bi-grams. We grouped the tri-grams by their first 2 terms and only kept the tri-grams with the most occurrences. Similarly, we grouped the bi-grams by their first term and only kept the bi-grams with the most occurrences. 
+
+### Prediction Logic
+We first try to find a tri-gram in the list whose first 2 terms match the last 2 words entered by the users. If we find one, the model return the last term of that tri-gram. Otherwise, we try to find a bi-gram in the list whose first term match the last word entered by the users. If we find one, the model returns the last term of that bi-gram. Otherwise, the model returns the most frequent term in the corpus.
+
+Model performance
+========================================================
+
+To assess the model performance, we took a random sample of 1000 tri-grams from the test set and tried to predict the last term of the tri-gram using our model. We performed a similar test with 2 other models: a 4-gram model similar to our tri-gram model and another tri-gram model where no filtering out of tri-grams with the same first two terms is done. The results are shown in the table below:
+
+|Model|Size|Accuracy|Avg. Prediction Time (sec)|Loading Time (sec)|
+|-----|---:|-------:|---:|--:|
+|Tri-gram|15.2MB| 14.6% | 0.081 | 7.196|
+|4-gram|52.2MB| 13.7% | 0.415| 40.986|
+|Tri-gram (no filtering)| 32.3.2MB | 14.2% | 0.253 |19.168|
+
+Web Application Overview
+========================================================
+
+A Shiny Web application has been created to test our model. It is available at [this](https://jedlejedi.shinyapps.io/PredictiveTyping/) address.
+
+The application is really simple: Just type a few words in the text box and click on the "Guess the next word button!". The model will then display the word it predicted.

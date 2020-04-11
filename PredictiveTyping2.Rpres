@@ -1,0 +1,64 @@
+Predictive Typing: Model Overview
+========================================================
+author: Julien Lafontaine
+date:  11 April 2020
+autosize: true
+font-family: 'Helvetica'
+transition: fade
+
+Value Proposition 
+========================================================
+
+- Our model can predict within a milliseconds the next word a user is about to type with a 15% accuracy
+- The model is lightwheight (only a few MBs) and can easily be implemented on most devices
+- We implemented and tested various models and picked up the one that provided the best trade off between performance and accuracy
+
+How does the model work?
+========================================================
+
+### Data Preparation
+- The model is based on [this](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) corpus. 80% of the lines were randonly sampled to create a training set and the remaining 20% constituted the test set.
+- The training set was "tokenized" to create one list of tri-grams and one of bi-grams.
+- We calculated the number of occurences of each tri-grams and bi-grams
+- We grouped the tri-grams by their first 2 terms and only kept the tri-grams with the most occurences.
+- We grouped the bi-grams by their first term and only kept the bi-grams with the most occurences. 
+- We identified the term with the most occurence in the corpus
+
+### Prediction Logic
+The model use the below algorithm to predict the term a user in likley to enter next:
+  + The text entered by the user is tokenised
+  + We first try to find a tri-gram in the list whose first 2 term match the last 2 words entered by the users
+  + If we find one, the model return the last term of that tri-gram
+  + Otherwise, we try to find a bi-gram in the list whose first term match the last word entered by the users
+  + If we find one, the model returns the last term of that bi-gram
+  + Otherwise, the model returns the most frequent term in the corpus
+
+Model performance
+========================================================
+
+To assess the model performance, we took a random sample of 1000 tri-grams from the test set and tried to predict the last term of the tri-gram using our model. We performed a similar test with 2 other models: a 4-gram model similar to our tri-gram model and another tri-gram model where no filtering out of tri-grams with the same first two term is done. The results are shown in teh table below:
+
+- Model: name of the model tested
+- Size: Size of data required by the model
+- Accuracy: % of times the model succesfuly predicted a word in the test set sample
+- Avg Prediction Time: Time required to make all 1000 predictions / 1000
+- Loading Time: Time required for the model to load and be ready to make a prediction.
+
+Model|Size|Accuracy|Avg. Prediction Time (sec)|Loading Time (sec)
+-----|---:|-------:|---:|--:
+Tri-gram|15.2MB| 14.6% | 0.081 | 7.196
+4-gram|52.2MB| 13.7% | 0.415| 40.986
+Tri-gram (no filtering)| 32.3.2MB | 14.2% | 0.253 |19.168 
+
+We can draw the following conclusions for these tests:
+- Using a 4-gram model does not seem to increase the accuracy but does increase prediction time, loading time and model size
+- Only keeping n-gram with the highest accorence does reduce model size, loading time and prediction time
+
+*We therefore selected a 3-gram model were redundent tri-gram have been removed.
+
+Web Application Overview
+========================================================
+
+A Shiny Web application has been created to test our model. It is available at [this](https://jedlejedi.shinyapps.io/PredictiveTyping/) addess.
+
+The application is really simple: Just type a few words in the text box and click on the "Guess the next word button!". The model will then the word it predicted.
